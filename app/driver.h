@@ -28,5 +28,5 @@ extern DRIVER_CLASS g_driver_user;
 int32 driver_init(void);
 int32 driver_register_delay_ms(delay_callback delay_cb);
 void delay_ms(uint32 ms);
-
+void delay_us(uint32 us);
 #endif
