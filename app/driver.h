@@ -7,7 +7,7 @@
 #include "driver_tool.h"
 
 
-//#define  OSAL
+#define  OSAL
 #ifdef OSAL
 #include "cmsis_os.h"
 typedef osStatus (*delay_callback)(unsigned int);
