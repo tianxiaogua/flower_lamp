@@ -2,27 +2,27 @@
 
 #include "tim.h"
 
-#define WS_H           45   // 1 ÂëÏà¶Ô¼ÆÊýÖµ
-#define WS_L           25   // 0 ÂëÏà¶Ô¼ÆÊýÖµ
-#define WS_REST        80   // ¸´Î»ÐÅºÅÂö³åÊýÁ¿
-#define LED_NUM       256   // WS2812µÆ¸öÊý
-#define DATA_LEN       24   // WS2812Êý¾Ý³¤¶È£¬µ¥¸öÐèÒª24¸ö×Ö½Ú
-#define WS2812_RST_NUM 50   // ¹Ù·½¸´Î»Ê±¼äÎª50us£¨40¸öÖÜÆÚ£©£¬±£ÏÕÆð¼ûÊ¹ÓÃ50¸öÖÜÆÚ
+#define WS_H           45   // 1 ç ç›¸å¯¹è®¡æ•°å€¼
+#define WS_L           25   // 0 ç ç›¸å¯¹è®¡æ•°å€¼
+#define WS_REST        80   // å¤ä½ä¿¡å·è„‰å†²æ•°é‡
+#define LED_NUM       256   // WS2812ç¯ä¸ªæ•°
+#define DATA_LEN       24   // WS2812æ•°æ®é•¿åº¦ï¼Œå•ä¸ªéœ€è¦24ä¸ªå­—èŠ‚
+#define WS2812_RST_NUM 80   // å®˜æ–¹å¤ä½æ—¶é—´ä¸º50usï¼ˆ40ä¸ªå‘¨æœŸï¼‰ï¼Œä¿é™©èµ·è§ä½¿ç”¨50ä¸ªå‘¨æœŸ
 
-//ÏÔ´æÊý×é£¬³¤¶ÈÎª µÆµÄÊýÁ¿*24+¸´Î»ÖÜÆÚ
+//æ˜¾å­˜æ•°ç»„ï¼Œé•¿åº¦ä¸º ç¯çš„æ•°é‡*24+å¤ä½å‘¨æœŸ
 uint16_t WS2812b_RGB_Buff[LED_NUM*DATA_LEN+WS2812_RST_NUM] = {0}; 
 
 /**
- * º¯Êý£ºWS2812µ¥µÆÉèÖÃº¯Êý
- * ²ÎÊý£ºnum:µÆµÄÎ»ÖÃ£¬R¡¢G¡¢B·Ö±ðÎªÈý¸öÑÕÉ«Í¨µÀµÄÁÁ¶È£¬×î´óÖµÎª255
- * ×÷ÓÃ£ºµ¥¶ÀÉèÖÃÃ¿Ò»¸öWS2812µÄÑÕÉ«
+ * å‡½æ•°ï¼šWS2812å•ç¯è®¾ç½®å‡½æ•°
+ * å‚æ•°ï¼šnum:ç¯çš„ä½ç½®ï¼ŒRã€Gã€Båˆ†åˆ«ä¸ºä¸‰ä¸ªé¢œè‰²é€šé“çš„äº®åº¦ï¼Œæœ€å¤§å€¼ä¸º255
+ * ä½œç”¨ï¼šå•ç‹¬è®¾ç½®æ¯ä¸€ä¸ªWS2812çš„é¢œè‰²
 ***/
 void WS2812b_Set(uint16_t num,uint8_t R,uint8_t G,uint8_t B)
 {
   uint32_t indexx=(num*(3*8));
   for (uint8_t i = 0;i < 8;i++)
   {
-		//Ìî³äÊý×é
+		//å¡«å……æ•°ç»„
 		WS2812b_RGB_Buff[indexx+i]      = (G << i) & (0x80)?WS_H:WS_L;
 		WS2812b_RGB_Buff[indexx+i + 8]  = (R << i) & (0x80)?WS_H:WS_L;
 		WS2812b_RGB_Buff[indexx+i + 16] = (B << i) & (0x80)?WS_H:WS_L;
@@ -30,15 +30,15 @@ void WS2812b_Set(uint16_t num,uint8_t R,uint8_t G,uint8_t B)
 }
 
 
-//WS2812³õÊ¼»¯º¯Êý
+//WS2812åˆå§‹åŒ–å‡½æ•°
 void WS2812b_Init()
 {
-	//ÉèÖÃ¹Ø±ÕËùÓÐµÆ
+	//è®¾ç½®å…³é—­æ‰€æœ‰ç¯
   for(int i=0;i<256;i++)
   {
 		WS2812b_Set(i,0,0,0);
   }
-  //×÷ÓÃ£ºµ÷ÓÃDMA½«ÏÔ´æÖÐµÄÄÚÈÝÊµÊ±°áÔËÖÁ¶¨Ê±Æ÷µÄ±È½Ï¼Ä´æÆ÷
+  //ä½œç”¨ï¼šè°ƒç”¨DMAå°†æ˜¾å­˜ä¸­çš„å†…å®¹å®žæ—¶æ¬è¿è‡³å®šæ—¶å™¨çš„æ¯”è¾ƒå¯„å­˜å™¨
   HAL_TIM_PWM_Start_DMA(&htim1,TIM_CHANNEL_1,(uint32_t *)WS2812b_RGB_Buff,sizeof(WS2812b_RGB_Buff)/sizeof(uint16_t)); 
 }
 

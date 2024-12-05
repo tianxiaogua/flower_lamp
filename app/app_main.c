@@ -9,32 +9,20 @@
 #include "ws2812b.h"
 #include "driver_key.h"
 
+enum led_work_satus
+{
+	work_shutdown = 0,
+	work_in
+};
+
 typedef struct
 {
 	uint8 led_mode;
-
+	uint8 led_word;
 }APP_CTR;
 
 APP_CTR g_app_control;
 KEY_PROCESS_TypeDef key_value;
-void light_mode()
-{
-	for(int i=0;i<17;i++)
-	{
-		WS2812b_Set(i,0,20,0);
-	}
-	HAL_Delay(200);
-	for(int i=0;i<17;i++)
-	{
-		WS2812b_Set(i,20,0,0);
-	}
-	HAL_Delay(200);
-	for(int i=0;i<17;i++)
-	{
-		WS2812b_Set(i,0,0,20);
-	}
-	HAL_Delay(200);
-}
 
 // 函数：返回三个数中的最小值
 int find_min(int a, int b, int c) {
@@ -50,10 +38,63 @@ int find_max(int a, int b, int c) {
 }
 
 
+int32 led_delay(int32 ms)
+{
+	for (int i=0; i<ms; i++) {
+		if (g_app_control.led_word == work_in) {
+			delay_ms(1);
+		} else {
+			return REV_ERR;
+		}
+	}
+	return REV_OK;
+}
+
+int32 led_display1[20] = {1,1,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0};
+int32 led_display2[20] = {0,1,1,1,1,0,1,1,1,0,1,1,1,0,0,0,1,0,1,0};
+int32 led_display3[20] = {1,1,1,0,1,0,0,0,1,0,0,0,1,0,0,0,1,0,0,1};
+// int32 led_display1[20] = {1,1,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0};
+// int32 led_display1[20] = {1,1,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0};
+
+void light_clean()
+{
+	for(int i=0;i<17;i++) {
+		WS2812b_Set(i,0,0,0);
+	}
+}
+
+void light_mode1()
+{
+	while (1) {
+		for(int i=0;i<17;i++) {
+			if (led_display1[i]) 
+				WS2812b_Set(i,0,20,0);
+			else 
+				WS2812b_Set(i,0,0,0);
+		}
+		if (led_delay(300) == REV_ERR) return;
+
+		for(int i=0;i<17;i++) {
+			if (led_display2[i]) 
+				WS2812b_Set(i,0,0,20);
+			else 
+				WS2812b_Set(i,0,0,0);
+		}
+		if (led_delay(300) == REV_ERR) return;
+
+		for(int i=0;i<17;i++) {
+			if (led_display3[i]) 
+				WS2812b_Set(i,20,0,0);
+			else 
+				WS2812b_Set(i,0,0,0);
+		}
+		if (led_delay(300) == REV_ERR) return;
+	}
+}
 
 void light_mode2()
 {
-	uint32 clolor = 0xFFFFFF;
+	uint32 clolor = 0x0F0F0F;
 	
 	uint8 clolor_R = clolor>>16;
 	uint8 clolor_G = clolor>>8 & 0xFF00FF;
@@ -64,28 +105,38 @@ void light_mode2()
 
 	GUA_LOGI("min_value %d middle_value %d max_value %d", min_value, middle_value, max_value);
 	
-	for (int i=0; i<=min_value; i++)
+	while (1)
 	{
-		for(int j=0;j<17;j++)
-		{
-			WS2812b_Set(j,clolor_R-i,clolor_G-i,clolor_B-i);
+		for (int i=0; i<=min_value; i++) {
+			for(int j=0; j<17; j++) {
+				WS2812b_Set(j, i,  i, i);
+			}
+			if (led_delay(80) == REV_ERR) return;
 		}
-		GUA_LOGI("i:%d",i);
-		delay_ms(10);
+		
+		for (int i=0; i<=min_value; i++) {
+			for(int j=0; j<17; j++) {
+				WS2812b_Set(j,clolor_R-i,clolor_G-i,clolor_B-i);
+			}
+			if (led_delay(80) == REV_ERR) return;
+		}
 	}
 }
+
 
 void led_task(void)
 {
 	while (1) {
-		switch (g_app_control.led_mode)
-		{
-		case 0: break;
-		case 1: light_mode2(); break;
+		g_app_control.led_word = work_in;
+		switch (g_app_control.led_mode) {
+		case 0:  break;
+		case 1: light_mode1(); break;
+		case 2: light_mode2(); break;
 		default:
 			break;
 		}
-		
+		light_clean();
+		led_delay(10);
 	}
 }
 
@@ -117,45 +168,35 @@ void task_main(void)
     GUA_LOGI("class begin");
     while (1)
     {
-			//  int32_t data = get_key();
-			//  //GUA_LOGI("get key:%d", data);
-			//  if (data == 1) {
-			// 	g_app_control.led_mode++;
-			// 	if(g_app_control.led_mode > 4) 
-			// 	{
-			// 		g_app_control.led_mode = 0;
-			// 	}
-				
-			//  }
-			//  delay_ms(300);
-			key = get_key();
-			 if (key == 1) {
-				if (histery_key != key) {
-					key_value.flag.key_state = KEY_STATE_PRESS;	//按下
-					key_value.flag.check = 1;
-					key_value.time_continus = 0;		//按键持续时间置零，准备开始计时
-					histery_key = key;
-				}
-			 } else {
-				if (histery_key != key) {
-					key_value.flag.key_state = KEY_STATE_RELEASE;	//松开
-					key_value.flag.check = 1;
-					key_value.time_idle = 0;			//按键空闲时间置零，准备开始计时
-					histery_key = key;
-				}
-			 }
-			
-			 key_Process(&key_value);
-			 key_sta = key_scan(&key_value);
-			 delay_ms(10);
+		key = get_key();
+		if (key == 1) {
+		if (histery_key != key) {
+			key_value.flag.key_state = KEY_STATE_PRESS;	//按下
+			key_value.flag.check = 1;
+			key_value.time_continus = 0;		//按键持续时间置零，准备开始计时
+			histery_key = key;
+		}
+		} else {
+			if (histery_key != key) {
+				key_value.flag.key_state = KEY_STATE_RELEASE;	//松开
+				key_value.flag.check = 1;
+				key_value.time_idle = 0;			//按键空闲时间置零，准备开始计时
+				histery_key = key;
+			}
+		}
+	
+		key_Process(&key_value);
+		key_sta = key_scan(&key_value);
+		delay_ms(10);
 
-			 if (key_sta == EVENT_SHORT_CLICK) {
-				g_app_control.led_mode++;
-				if(g_app_control.led_mode > 4) 
-				{
-					g_app_control.led_mode = 0;
-				}
-			 }
+		if (key_sta == EVENT_SHORT_CLICK) {
+			g_app_control.led_word = work_shutdown;
+			g_app_control.led_mode++;
+			if(g_app_control.led_mode > 4){
+				g_app_control.led_mode = 0;
+			}
+			GUA_LOGI("led_mode %d", g_app_control.led_mode);
+		}
     }
     
 }
