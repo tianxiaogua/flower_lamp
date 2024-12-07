@@ -102,12 +102,11 @@ void set_led_color(uint32 num, uint32 color)
 }
 
 
-void light_mode7()
+void light_mode7(uint32 color)
 {
-	while (1)
-	{
+	while (1) {
 		for (int i=0; i<g_app_control.cfg_led_nums; i++) {
-			set_led_color(i, 0xFFFFFF);
+			set_led_color(i, color);
 		}
 		if (led_delay(10000) == REV_ERR) return;
 	}
@@ -283,16 +282,17 @@ void led_task(void)
 	while (1) {
 		g_app_control.led_word = work_in;
 		switch (g_app_control.led_mode) {
-		case 0:  break;
-		case 1: light_mode4(); break;
-		case 2: light_mode3(0xA52A2A); break;
-		case 3: light_mode3(0x00F5FF); break;
-		case 4: light_mode3(0x0F0F0F); break;
-		case 5: light_mode2(); break;
-		case 6: light_mode1(); break;
-		case 7: light_mode7(); break;
-		default:
-			break;
+			case 0: light_mode2(); break;
+			case 1: light_mode4(); break;
+			case 2: light_mode3(0x0F0F01); break;
+			case 3: light_mode3(0xA52A2A); break;
+			case 4: light_mode3(0x0F0F0F); break;
+			case 5: light_mode1(); break;
+
+			// 连按两次展示常亮灯效
+			case 8: light_mode7(0xF09F01); break;
+			case 7: light_mode7(0xFFFFFF); break;
+			default: break;
 		}
 		light_clean();
 		led_delay(10);
@@ -304,6 +304,7 @@ void task_main(void)
 {
 	uint8 histery_key = 0, key =0;
 	uint8 key_sta;
+	uint8 led_status = 0;
 
 	memset(&g_app_control, 0, sizeof(APP_CTR));
 	g_app_control.cfg_led_nums = 17;
@@ -326,6 +327,9 @@ void task_main(void)
     WS2812b_Init();
 	HAL_GPIO_WritePin(LED0_GPIO_Port, LED0_Pin, GPIO_PIN_SET);
 
+	// for (int i=0; i<17; i++) {
+	// 	set_led_color(i, 0xF09F01);
+	// } while (1);
 	
     GUA_LOGI("class begin");
     while (1)
@@ -354,7 +358,7 @@ void task_main(void)
 		if (key_sta == EVENT_SHORT_CLICK) {
 			g_app_control.led_word = work_shutdown;
 			g_app_control.led_mode++;
-			if(g_app_control.led_mode > 6){
+			if(g_app_control.led_mode > 5){
 				g_app_control.led_mode = 0;
 			}
 			GUA_LOGI("led_mode %d", g_app_control.led_mode);
@@ -362,9 +366,17 @@ void task_main(void)
 
 		if (key_sta == EVENT_DOUBLE_CLICK) {
 			if (key_value.press_cnt == 2) { // 连按2次
-				GUA_LOGE("go to led mode 7");
+				GUA_LOGE("go to led long mode");
+				led_status++;
+				if (led_status > 2) {
+					led_status = 1;
+				}
 				g_app_control.led_word = work_shutdown;
-				g_app_control.led_mode = 7;
+				switch (led_status) {
+					case 1: g_app_control.led_mode = 7; break;
+					case 2: g_app_control.led_mode = 8; break;
+					default: break;
+				}
 			}
 		
 		}

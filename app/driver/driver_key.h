@@ -5,8 +5,8 @@
 
 //设计扫描为10ms定时
 #define	KEY_TIME_IDLE		30		//按键动作空闲时间
-#define	KEY_TIME_CONTINUS	45		//按键动作持续时间
-#define	KEY_TIME_OUT		160	//按键超时
+#define	KEY_TIME_CONTINUS	90		//按键动作持续时间
+#define	KEY_TIME_OUT		160	    //按键超时
 
 //事件类型
 #define EVENT_NONE_CLICK	0x00	//无动作
