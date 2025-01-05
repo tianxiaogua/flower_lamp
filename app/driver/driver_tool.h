@@ -98,4 +98,7 @@ typedef char  int8;
 typedef unsigned char  uint8;
 
 
+void driver_bubble_sort(float arr[], int n);
+int32 driver_remove_max_and_min(float arr[], int n);
+
 #endif /* APP_USER_TOOL_H_ */

@@ -6,22 +6,23 @@
 
 uint32_t driver_adc()
 {
-	HAL_ADC_Start(&hadc1);    //Æô¶¯ADC×ª»»
-	HAL_ADC_PollForConversion(&hadc1,1); //µÈ´ı×ª»»Íê³É£¬10ms±íÊ¾³¬Ê±Ê±¼ä
-	uint32_t AD_Value = HAL_ADC_GetValue(&hadc1);  //¶ÁÈ¡ADC×ª»»Êı¾İ£¨12Î»Êı¾İ£©
+	HAL_ADC_Start(&hadc1);    //å¯åŠ¨ADCè½¬æ¢
+	HAL_ADC_PollForConversion(&hadc1,1); //ç­‰å¾…è½¬æ¢å®Œæˆï¼Œ10msè¡¨ç¤ºè¶…æ—¶æ—¶é—´
+	uint32_t AD_Value = HAL_ADC_GetValue(&hadc1);  //è¯»å–ADCè½¬æ¢æ•°æ®ï¼ˆ12ä½æ•°æ®ï¼‰
 	//printf("ADC1_IN1 ADC value: %d\r\n",AD_Value);
-	float Vol_Value = AD_Value*(3.3/4096);  //ADÖµ³ËÒÔ·Ö±æÂÊ¼´ÎªµçÑ¹Öµ
+	float Vol_Value = AD_Value*(3.3/4096);  //ADå€¼ä¹˜ä»¥åˆ†è¾¨ç‡å³ä¸ºç”µå‹å€¼
 	//printf("ADC1_IN1 VOL value: %.2fV\r\n",Vol_Value);
 	return 1;
 }
 
 
-//»ñÈ¡µçÑ¹
+//è·å–ç”µå‹
 float get_voltage(void)
 {
-	HAL_ADC_Start(&hadc1);    //Æô¶¯ADC×ª»»
-	HAL_ADC_PollForConversion(&hadc1,1); //µÈ´ı×ª»»Íê³É£¬10ms±íÊ¾³¬Ê±Ê±¼ä
-	uint32_t AD_Value = HAL_ADC_GetValue(&hadc1);  //¶ÁÈ¡ADC×ª»»Êı¾İ£¨12Î»Êı¾İ£©
-	float Vol_Value = AD_Value*(3.3/4096)*2;  //ADÖµ³ËÒÔ·Ö±æÂÊ¼´ÎªµçÑ¹Öµ
+	HAL_ADC_Start(&hadc1);    //å¯åŠ¨ADCè½¬æ¢
+	HAL_ADC_PollForConversion(&hadc1,1); //ç­‰å¾…è½¬æ¢å®Œæˆï¼Œ10msè¡¨ç¤ºè¶…æ—¶æ—¶é—´
+	uint32_t AD_Value = HAL_ADC_GetValue(&hadc1);  //è¯»å–ADCè½¬æ¢æ•°æ®ï¼ˆ12ä½æ•°æ®ï¼‰
+	printf("V:%03f\r\n", AD_Value*(3.3/4096));
+	float Vol_Value = AD_Value*(3.3/4096)*2;  //ADå€¼ä¹˜ä»¥åˆ†è¾¨ç‡å³ä¸ºç”µå‹å€¼
 	return Vol_Value;
 }

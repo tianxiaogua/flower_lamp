@@ -299,12 +299,14 @@ void led_task(void)
 	}
 }
 
-
 void task_main(void)
 {
 	uint8 histery_key = 0, key =0;
 	uint8 key_sta;
 	uint8 led_status = 0;
+	float data_voltage_buf[10] = {0};
+	int32 rev = 0;
+	float data_average = 0;
 
 	memset(&g_app_control, 0, sizeof(APP_CTR));
 	g_app_control.cfg_led_nums = 17;
@@ -313,10 +315,22 @@ void task_main(void)
     driver_init();
 	WS2812b_Init();
     driver_register_delay_ms(osDelay);
-	#if TEST
-    float data = get_voltage();
-    if (data < LOW_POWER_VOLTAGE) {
-        GUA_LOGW("get voltage = %.2fV", data);
+
+	#if !TEST
+	for (int i=0; i<10; i++) {
+		data_voltage_buf[i] = get_voltage();
+		GUA_LOGW("time:%d get voltage = %.2fV", i, data_voltage_buf[i]);
+		delay_ms(10);
+	}
+    rev = driver_remove_max_and_min(data_voltage_buf, sizeof(data_voltage_buf)/sizeof(float));
+	for (int i=0; i<rev; i++) {
+		data_average += data_voltage_buf[i];
+	}
+	data_average = data_average/rev;
+
+	GUA_LOGW("voltage = %.2fV", data_average);
+
+    if (data_average < LOW_POWER_VOLTAGE) {
         GUA_LOGW("lowpower sleep!");
         set_lowpower_sleep();
         return;
@@ -330,7 +344,7 @@ void task_main(void)
 	// for (int i=0; i<17; i++) {
 	// 	set_led_color(i, 0xF09F01);
 	// } while (1);
-	
+
     GUA_LOGI("class begin");
     while (1)
     {
@@ -383,6 +397,7 @@ void task_main(void)
 
 		if (key_sta == EVENT_LONG_CLICK) {
 			GUA_LOGE("sleep");
+			HAL_GPIO_WritePin(LED0_GPIO_Port, LED0_Pin, GPIO_PIN_RESET);
 			light_clean();
 			set_lowpower_sleep();
 			delay_ms(3000);
@@ -393,7 +408,6 @@ void task_main(void)
 			g_app_control.time = 0;
 		}
     }
-    
 }
 
 
